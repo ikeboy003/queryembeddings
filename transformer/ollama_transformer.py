@@ -39,7 +39,7 @@ class OllamaQueryTransformer(QueryTransformer):
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are a query normalization assistant. Transform user queries into clean, normalized search queries."
+                        "content": "You are a query normalization assistant. Transform user queries into clean, normalized web search queries."
                     },
                     {
                         "role": "user",
@@ -53,7 +53,7 @@ class OllamaQueryTransformer(QueryTransformer):
             if not normalized_query:
                 logger.warning("Transformer returned empty query, using original")
                 return query
-            
+            print(f"Transformed query: '{query}' -> '{normalized_query}'")
             logger.debug(f"Transformed query: '{query}' -> '{normalized_query}'")
             return normalized_query
             

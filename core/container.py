@@ -69,7 +69,8 @@ class Container:
                 embedding_provider=self.embedding_provider,
                 storage=self.storage,
                 query_transformer=self.query_transformer,
-                similarity_threshold=settings.SIMILARITY_THRESHOLD
+                similarity_threshold=settings.SIMILARITY_THRESHOLD,
+                high_confidence_threshold=settings.HIGH_CONFIDENCE_THRESHOLD
             )
         return self._semantic_service
 
