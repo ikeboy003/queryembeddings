@@ -1,7 +1,9 @@
 """Dependency injection container."""
 import logging
 from core.settings import settings
+from providers.base import EmbeddingProvider
 from providers.ollama_provider import OllamaEmbeddingProvider
+from storage.base import VectorStore
 from storage.chroma_store import ChromaStore
 from services.semantic_service import SemanticService
 
@@ -17,16 +19,23 @@ class Container:
         self._semantic_service = None
     
     @property
-    def embedding_provider(self) -> OllamaEmbeddingProvider:
+    def embedding_provider(self) -> EmbeddingProvider:
         """Get or create embedding provider."""
         if self._embedding_provider is None:
             self._embedding_provider = OllamaEmbeddingProvider(
                 model=settings.EMBEDDING_MODEL
             )
+            # Ping the embedding provider on initialization
+            try:
+                self._embedding_provider.ping()
+                logger.info("Embedding provider connection verified successfully")
+            except Exception as e:
+                logger.error(f"Failed to connect to embedding provider: {e}")
+                raise
         return self._embedding_provider
     
     @property
-    def storage(self) -> ChromaStore:
+    def storage(self) -> VectorStore:
         """Get or create storage instance."""
         if self._storage is None:
             self._storage = ChromaStore(

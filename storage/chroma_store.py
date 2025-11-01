@@ -57,14 +57,14 @@ class ChromaStore(VectorStore):
             logger.error(f"ChromaDB ping failed: {e}")
             raise
     
-    def add_embedding(
+    def put(
         self,
         query: str,
         embedding: List[float],
         metadata: Optional[Dict] = None
     ) -> str:
         """
-        Add embedding with metadata to the store.
+        Store embedding with metadata.
         
         Args:
             query: User query text
@@ -95,7 +95,7 @@ class ChromaStore(VectorStore):
             logger.error(f"Failed to add embedding: {e}")
             raise
     
-    def find_similar(
+    def find(
         self,
         embedding: List[float],
         threshold: float = 0.85,

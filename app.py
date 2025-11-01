@@ -15,9 +15,10 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# Initialize container on startup (this will ping the database)
+# Initialize container on startup (this will ping both database and embedding provider)
 try:
     _ = container.storage  # This triggers initialization and ping
+    _ = container.embedding_provider  # This triggers initialization and ping
     logger.info("Service initialized successfully")
 except Exception as e:
     logger.error(f"Failed to initialize service: {e}")

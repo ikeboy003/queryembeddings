@@ -24,7 +24,7 @@ def test_add_embedding(temp_storage):
     embedding = [0.1] * 384  # Mock embedding vector
     query = "test query"
     
-    embedding_id = temp_storage.add_embedding(
+    embedding_id = temp_storage.put(
         query=query,
         embedding=embedding
     )
@@ -37,13 +37,13 @@ def test_find_similar(temp_storage):
     """Test finding similar embeddings."""
     # Add a test embedding
     embedding1 = [0.1] * 384
-    temp_storage.add_embedding(
+    temp_storage.put(
         query="test query 1",
         embedding=embedding1
     )
     
     # Search with same embedding
-    results = temp_storage.find_similar(
+    results = temp_storage.find(
         embedding=embedding1,
         threshold=0.5
     )
@@ -57,13 +57,13 @@ def test_find_similar_threshold(temp_storage):
     embedding1 = [0.1] * 384
     embedding2 = [0.9] * 384  # Very different embedding
     
-    temp_storage.add_embedding(
+    temp_storage.put(
         query="test query",
         embedding=embedding1
     )
     
     # Search with very different embedding
-    results = temp_storage.find_similar(
+    results = temp_storage.find(
         embedding=embedding2,
         threshold=0.95  # High threshold
     )

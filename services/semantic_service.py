@@ -1,6 +1,6 @@
 """Semantic service - core orchestrator for query processing."""
 import logging
-from providers.ollama_provider import OllamaEmbeddingProvider
+from providers.base import EmbeddingProvider
 from storage.base import VectorStore
 
 logger = logging.getLogger(__name__)
@@ -11,7 +11,7 @@ class SemanticService:
     
     def __init__(
         self,
-        embedding_provider: OllamaEmbeddingProvider,
+        embedding_provider: EmbeddingProvider,
         storage: VectorStore,
         similarity_threshold: float = 0.85
     ):
@@ -47,14 +47,14 @@ class SemanticService:
         
         # Step 1: Generate embedding
         try:
-            embedding = self.embedding_provider.generate_embedding(text)
+            embedding = self.embedding_provider.create(text)
             logger.debug(f"Generated embedding vector of length {len(embedding)}")
         except Exception as e:
             logger.error(f"Failed to generate embedding: {e}")
             raise
         
         # Step 2: Check for similar cached queries
-        similar_items = self.storage.find_similar(
+        similar_items = self.storage.find(
             embedding=embedding,
             threshold=self.similarity_threshold,
             top_k=1  # We only need the best match
@@ -70,7 +70,7 @@ class SemanticService:
         # Step 4: Store the new embedding and return original query
         logger.info("No cached match found, storing new query")
         try:
-            self.storage.add_embedding(
+            self.storage.put(
                 query=text,
                 embedding=embedding
             )
