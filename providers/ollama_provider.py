@@ -34,7 +34,10 @@ class OllamaEmbeddingProvider(EmbeddingProvider):
         """
         try:
             response = ollama.embeddings(model=self.model, prompt=text)
-            return response.get("embedding", [])
+            embedding = response.get("embedding", [])
+            if not embedding:
+                raise ValueError("Ollama returned empty embedding")
+            return embedding
         except Exception as e:
             logger.error(f"Failed to create embedding: {e}")
             raise
@@ -50,15 +53,11 @@ class OllamaEmbeddingProvider(EmbeddingProvider):
             Exception: If the service connection fails
         """
         try:
-            # Try to create a minimal embedding to test connection
-            # Using a very short text to minimize overhead
             response = ollama.embeddings(model=self.model, prompt="ping")
-            if response.get("embedding"):
-                logger.info("Ollama ping successful")
-                return True
-            else:
-                logger.error("Ollama ping failed: empty response")
+            if not response.get("embedding"):
                 raise Exception("Ollama returned empty embedding")
+            logger.info("Ollama ping successful")
+            return True
         except Exception as e:
             logger.error(f"Ollama ping failed: {e}")
             raise

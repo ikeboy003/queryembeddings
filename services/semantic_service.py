@@ -31,11 +31,7 @@ class SemanticService:
         """
         Process a user query through the semantic cache.
         
-        Flow:
-        1. Generate embedding for query
-        2. Check storage for similar embeddings
-        3. If found above threshold, return cached query
-        4. If not found, return original query and store it
+        Returns cached query if similar match found, otherwise stores and returns original.
         
         Args:
             text: User query text
@@ -45,37 +41,23 @@ class SemanticService:
         """
         logger.info(f"Processing query: {text[:50]}...")
         
-        # Step 1: Generate embedding
-        try:
-            embedding = self.embedding_provider.create(text)
-            logger.debug(f"Generated embedding vector of length {len(embedding)}")
-        except Exception as e:
-            logger.error(f"Failed to generate embedding: {e}")
-            raise
+        embedding = self.embedding_provider.create(text)
+        logger.debug(f"Generated embedding vector of length {len(embedding)}")
         
-        # Step 2: Check for similar cached queries
         similar_items = self.storage.find(
             embedding=embedding,
             threshold=self.similarity_threshold,
-            top_k=1  # We only need the best match
+            top_k=1
         )
         
-        # Step 3: Return cached query if found
         if similar_items:
-            best_match = similar_items[0]
-            cached_query = best_match["query"]
-            logger.info(f"Found cached query with similarity: {best_match['similarity']:.3f}")
+            cached_query = similar_items[0]["query"]
+            similarity = similar_items[0]["similarity"]
+            logger.info(f"Found cached query with similarity: {similarity:.3f}")
             return cached_query
         
-        # Step 4: Store the new embedding and return original query
         logger.info("No cached match found, storing new query")
-        try:
-            self.storage.put(
-                query=text,
-                embedding=embedding
-            )
-            logger.info(f"Stored new embedding for query: {text[:50]}...")
-        except Exception as e:
-            logger.error(f"Failed to store embedding: {e}")
+        self.storage.put(query=text, embedding=embedding)
+        logger.info(f"Stored new embedding for query: {text[:50]}...")
         
         return text

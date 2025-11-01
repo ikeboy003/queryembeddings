@@ -18,6 +18,15 @@ class Container:
         self._storage = None
         self._semantic_service = None
     
+    def _ping_service(self, service, service_name: str) -> None:
+        """Helper method to ping a service and log the result."""
+        try:
+            service.ping()
+            logger.info(f"{service_name} connection verified successfully")
+        except Exception as e:
+            logger.error(f"Failed to connect to {service_name}: {e}")
+            raise
+    
     @property
     def embedding_provider(self) -> EmbeddingProvider:
         """Get or create embedding provider."""
@@ -25,13 +34,7 @@ class Container:
             self._embedding_provider = OllamaEmbeddingProvider(
                 model=settings.EMBEDDING_MODEL
             )
-            # Ping the embedding provider on initialization
-            try:
-                self._embedding_provider.ping()
-                logger.info("Embedding provider connection verified successfully")
-            except Exception as e:
-                logger.error(f"Failed to connect to embedding provider: {e}")
-                raise
+            self._ping_service(self._embedding_provider, "Embedding provider")
         return self._embedding_provider
     
     @property
@@ -42,13 +45,7 @@ class Container:
                 collection_name=settings.CHROMA_COLLECTION_NAME,
                 persist_directory=settings.CHROMA_PERSIST_DIR
             )
-            # Ping the database on initialization
-            try:
-                self._storage.ping()
-                logger.info("Database connection verified successfully")
-            except Exception as e:
-                logger.error(f"Failed to connect to database: {e}")
-                raise
+            self._ping_service(self._storage, "Database")
         return self._storage
     
     @property

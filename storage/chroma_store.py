@@ -24,13 +24,11 @@ class ChromaStore(VectorStore):
         self.collection_name = collection_name
         self.persist_directory = persist_directory
         
-        # Initialize ChromaDB client with persistence
         self.client = chromadb.PersistentClient(
             path=persist_directory,
             settings=ChromaSettings(anonymized_telemetry=False)
         )
         
-        # Get or create collection
         try:
             self.collection = self.client.get_collection(name=collection_name)
             logger.info(f"Loaded existing collection: {collection_name}")
@@ -49,7 +47,6 @@ class ChromaStore(VectorStore):
             Exception: If the database connection fails
         """
         try:
-            # Try to access the collection (this will fail if DB is not accessible)
             _ = self.collection.count()
             logger.info("ChromaDB ping successful")
             return True
@@ -75,8 +72,6 @@ class ChromaStore(VectorStore):
             Generated embedding ID
         """
         embedding_id = str(uuid.uuid4())
-        
-        # Prepare metadata
         doc_metadata = {
             "timestamp": datetime.utcnow().isoformat(),
             **(metadata or {})
@@ -86,13 +81,13 @@ class ChromaStore(VectorStore):
             self.collection.add(
                 ids=[embedding_id],
                 embeddings=[embedding],
-                documents=[query],  # Store original query as document
+                documents=[query],
                 metadatas=[doc_metadata]
             )
-            logger.info(f"Added embedding with ID: {embedding_id}")
+            logger.info(f"Stored embedding with ID: {embedding_id}")
             return embedding_id
         except Exception as e:
-            logger.error(f"Failed to add embedding: {e}")
+            logger.error(f"Failed to store embedding: {e}")
             raise
     
     def find(
@@ -113,34 +108,31 @@ class ChromaStore(VectorStore):
             List of dictionaries with id, distance, query, similarity, metadata
         """
         try:
-            # Query ChromaDB (returns results sorted by similarity)
             results = self.collection.query(
                 query_embeddings=[embedding],
                 n_results=top_k
             )
             
-            # Process results
-            similar_items = []
+            if not results['ids'] or not results['ids'][0]:
+                return []
             
-            if results['ids'] and len(results['ids'][0]) > 0:
-                ids = results['ids'][0]
-                distances = results['distances'][0]
-                documents = results['documents'][0]
-                metadatas = results['metadatas'][0]
+            ids = results['ids'][0]
+            distances = results['distances'][0]
+            documents = results['documents'][0]
+            metadatas = results['metadatas'][0]
+            
+            similar_items = []
+            for i, (id_val, distance) in enumerate(zip(ids, distances)):
+                similarity = 1.0 - distance
                 
-                for i, (id_val, distance) in enumerate(zip(ids, distances)):
-                    # Convert distance to similarity (ChromaDB uses distance, lower is better)
-                    # For cosine similarity: similarity = 1 - distance
-                    similarity = 1.0 - distance
-                    
-                    if similarity >= threshold:
-                        similar_items.append({
-                            "id": id_val,
-                            "similarity": similarity,
-                            "distance": distance,
-                            "query": documents[i] if i < len(documents) else "",
-                            "metadata": metadatas[i] if i < len(metadatas) else {}
-                        })
+                if similarity >= threshold:
+                    similar_items.append({
+                        "id": id_val,
+                        "similarity": similarity,
+                        "distance": distance,
+                        "query": documents[i] if i < len(documents) else "",
+                        "metadata": metadatas[i] if i < len(metadatas) else {}
+                    })
             
             return similar_items
         except Exception as e:
