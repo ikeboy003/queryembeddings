@@ -5,11 +5,12 @@ from typing import List, Dict, Optional
 import uuid
 from datetime import datetime
 import logging
+from storage.base import VectorStore
 
 logger = logging.getLogger(__name__)
 
 
-class ChromaStore:
+class ChromaStore(VectorStore):
     """ChromaDB storage for embeddings and metadata."""
     
     def __init__(self, collection_name: str, persist_directory: str = "./chroma_db"):
@@ -36,6 +37,25 @@ class ChromaStore:
         except Exception:
             self.collection = self.client.create_collection(name=collection_name)
             logger.info(f"Created new collection: {collection_name}")
+    
+    def ping(self) -> bool:
+        """
+        Check if ChromaDB is accessible and healthy.
+        
+        Returns:
+            True if ChromaDB is accessible, False otherwise
+            
+        Raises:
+            Exception: If the database connection fails
+        """
+        try:
+            # Try to access the collection (this will fail if DB is not accessible)
+            _ = self.collection.count()
+            logger.info("ChromaDB ping successful")
+            return True
+        except Exception as e:
+            logger.error(f"ChromaDB ping failed: {e}")
+            raise
     
     def add_embedding(
         self,

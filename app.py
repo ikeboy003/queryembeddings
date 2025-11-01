@@ -15,6 +15,14 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
+# Initialize container on startup (this will ping the database)
+try:
+    _ = container.storage  # This triggers initialization and ping
+    logger.info("Service initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize service: {e}")
+    raise
+
 
 @app.route("/")
 def root():

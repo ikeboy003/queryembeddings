@@ -1,7 +1,7 @@
 """Semantic service - core orchestrator for query processing."""
 import logging
 from providers.ollama_provider import OllamaEmbeddingProvider
-from storage.chroma_store import ChromaStore
+from storage.base import VectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ class SemanticService:
     def __init__(
         self,
         embedding_provider: OllamaEmbeddingProvider,
-        storage: ChromaStore,
+        storage: VectorStore,
         similarity_threshold: float = 0.85
     ):
         """

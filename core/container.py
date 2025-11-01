@@ -1,8 +1,11 @@
 """Dependency injection container."""
+import logging
 from core.settings import settings
 from providers.ollama_provider import OllamaEmbeddingProvider
 from storage.chroma_store import ChromaStore
 from services.semantic_service import SemanticService
+
+logger = logging.getLogger(__name__)
 
 
 class Container:
@@ -30,6 +33,13 @@ class Container:
                 collection_name=settings.CHROMA_COLLECTION_NAME,
                 persist_directory=settings.CHROMA_PERSIST_DIR
             )
+            # Ping the database on initialization
+            try:
+                self._storage.ping()
+                logger.info("Database connection verified successfully")
+            except Exception as e:
+                logger.error(f"Failed to connect to database: {e}")
+                raise
         return self._storage
     
     @property
