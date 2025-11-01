@@ -1,0 +1,8 @@
+flask
+flask-cors
+chromadb
+numpy
+python-dotenv
+pytest
+gunicorn
+ollama
