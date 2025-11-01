@@ -17,6 +17,7 @@ CORS(app)
 try:
     _ = container.storage
     _ = container.embedding_provider
+    _ = container.query_transformer
     logger.info("Service initialized successfully")
 except Exception as e:
     logger.error(f"Failed to initialize service: {e}")

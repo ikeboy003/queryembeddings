@@ -5,6 +5,8 @@ from providers.base import EmbeddingProvider
 from providers.ollama_provider import OllamaEmbeddingProvider
 from storage.base import VectorStore
 from storage.chroma_store import ChromaStore
+from transformer.base import QueryTransformer
+from transformer.ollama_transformer import OllamaQueryTransformer
 from services.semantic_service import SemanticService
 
 logger = logging.getLogger(__name__)
@@ -16,6 +18,7 @@ class Container:
     def __init__(self):
         self._embedding_provider = None
         self._storage = None
+        self._query_transformer = None
         self._semantic_service = None
     
     def _ping_service(self, service, service_name: str) -> None:
@@ -49,12 +52,23 @@ class Container:
         return self._storage
     
     @property
+    def query_transformer(self) -> QueryTransformer:
+        """Get or create query transformer."""
+        if self._query_transformer is None:
+            self._query_transformer = OllamaQueryTransformer(
+                model=settings.TRANSFORMER_MODEL
+            )
+            self._ping_service(self._query_transformer, "Query transformer")
+        return self._query_transformer
+    
+    @property
     def semantic_service(self) -> SemanticService:
         """Get or create semantic service."""
         if self._semantic_service is None:
             self._semantic_service = SemanticService(
                 embedding_provider=self.embedding_provider,
                 storage=self.storage,
+                query_transformer=self.query_transformer,
                 similarity_threshold=settings.SIMILARITY_THRESHOLD
             )
         return self._semantic_service

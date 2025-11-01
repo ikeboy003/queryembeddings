@@ -10,6 +10,8 @@ class Settings:
     
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "embeddinggemma:300m")
     
+    TRANSFORMER_MODEL: str = os.getenv("TRANSFORMER_MODEL", "llama3.1:latest")
+    
     CHROMA_COLLECTION_NAME: str = os.getenv("CHROMA_COLLECTION_NAME", "query_embeddings")
     CHROMA_PERSIST_DIR: str = os.getenv("CHROMA_PERSIST_DIR", "./chroma_db")
     
